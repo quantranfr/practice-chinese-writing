@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Practice Chinese Writing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    #drawingCanvas {
+      border: 1px solid #ccc;
+    }
+    #resultDisplay {
+      font-size: 40px;
+    }
+    footer {
+      font-size: 12px;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container content">
+    <h1>Practice Chinese Writing (HSK 1)</h1>
+    <button id="nextButton" class="btn btn-primary">Next pinyin word</button>
+    <br><br>
+    <div id="wordDisplay"></div>
+    <canvas id="drawingCanvas" width="300" height="300"></canvas>
+    <br><br>
+    <button id="clearButton" class="btn btn-secondary">Clear</button>
+    <button id="checkButton" class="btn btn-success">Check</button>
+    <div id="resultDisplay"></div>
+  </div>
+  <footer class="container text-center my-2">
+    <p class="mb-0">Powered by Quan Tran &copy; <span id="currentYear"></span> | Subject to Creative Commons Attribution-NonCommercial License</p>
+  </footer>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      // var pinyinWords = [
+      //   { pinyin: "nǐ", character: "你" },
+      //   { pinyin: "hǎo", character: "好" },
+      //   { pinyin: "wǒ", character: "我" },
+      //   // Add more pinyin words here
+      // ];
+
+      var pinyinWords = [];
+
+      function loadWords() {
+        fetch('hsk1.csv')
+          .then(response => response.text())
+          .then(data => {
+            // Parse CSV data
+            var rows = data.split('\n');
+            for (var i = 1; i < rows.length; i++) {
+              var columns = rows[i].split(',');
+              var pinyin = columns[1];
+              var character = columns[0];
+              pinyinWords.push({ pinyin: pinyin, character: character });
+            }
+          })
+          .catch(error => {
+            console.error('Error loading word list:', error);
+          });
+      }
+
+      // Load word list on page load
+      loadWords();
+      
+      var currentIndex = 0;
+      var canvas = document.getElementById("drawingCanvas");
+      var context = canvas.getContext("2d");
+      var isDrawing = false;
+
+      function resetWord(word) {
+        $("#wordDisplay").text(word.pinyin);
+        $("#resultDisplay").text("");
+        clearDrawing();
+      }
+      
+      function clearDrawing() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function checkWord(word) {
+        $("#resultDisplay").text(word.character);
+      }
+
+      function startDrawing(event) {
+        isDrawing = true;
+        var x, y;
+        if (event.type === 'touchstart') {
+          x = event.touches[0].pageX - canvas.offsetLeft;
+          y = event.touches[0].pageY - canvas.offsetTop;
+        } else {
+          x = event.pageX - canvas.offsetLeft;
+          y = event.pageY - canvas.offsetTop;
+        }
+        context.beginPath();
+        context.moveTo(x, y);
+      }
+
+      function draw(event) {
+        event.preventDefault(); // Prevent default scrolling behavior
+        if (!isDrawing) return;
+        var x, y;
+        if (event.type === 'touchmove') {
+          x = event.touches[0].pageX - canvas.offsetLeft;
+          y = event.touches[0].pageY - canvas.offsetTop;
+        } else {
+          x = event.pageX - canvas.offsetLeft;
+          y = event.pageY - canvas.offsetTop;
+        }
+        context.lineTo(x, y);
+        context.lineWidth = 5; // Increase the stroke width value as desired
+        context.stroke();
+      }
+
+      function stopDrawing() {
+        isDrawing = false;
+      }
+
+      $("#nextButton").click(function() {
+        let word;
+        do {
+          currentIndex = Math.floor(Math.random() * pinyinWords.length);
+          word = pinyinWords[currentIndex];
+        } while ($("#wordDisplay").text() == word.pinyin) 
+        resetWord(word);
+      });
+
+      $("#clearButton").click(function() {
+        clearDrawing();
+      });
+
+      $("#checkButton").click(function() {
+        checkWord(pinyinWords[currentIndex]);
+      });
+
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+      canvas.addEventListener("mouseout", stopDrawing);
+      
+      canvas.addEventListener("touchstart", startDrawing);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stopDrawing);
+      canvas.addEventListener("touchcancel", stopDrawing);
+      
+      var year = new Date().getFullYear();
+      $('#currentYear').text(year);
+    });
+  </script>
+</body>
+</html>
