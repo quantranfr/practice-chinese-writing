@@ -28,9 +28,12 @@
 <body>
   <div class="container content">
     <h1>Practice Chinese Writing (HSK 1)</h1>
-    <button id="nextButton" class="btn btn-primary">Next pinyin word</button>
+    <button id="nextButton" class="btn btn-primary">Next word</button>
+    <button id="skipButton" class="btn btn-warning">Skip</button>
+    <button id="resetSkipButton" class="btn btn-secondary">Reset skip</button>
+    Skipped: <span id="nbSkipped">0</span>
     <br><br>
-    <div id="wordDisplay"></div>
+    <div id="spelling"></div>
     <canvas id="drawingCanvas" width="380px" height="300px"></canvas>
     <br><br>
     <button id="clearButton" class="btn btn-secondary">Clear</button>
@@ -43,15 +46,12 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script>
+    // alert('hi');
     $(document).ready(function() {
-      // var pinyinWords = [
-      //   { pinyin: "nǐ", character: "你" },
-      //   { pinyin: "hǎo", character: "好" },
-      //   { pinyin: "wǒ", character: "我" },
-      //   // Add more pinyin words here
-      // ];
-
-      var pinyinWords = [];
+      var words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
+      var skippedWords = JSON.parse(localStorage.getItem("skippedWords")) || []; // array of words (character only) that have been skipped, load from local storage
+      $("#nbSkipped").text(skippedWords.length);
+      // alert("Skipped words: " + skippedWords);
 
       function loadWords() {
         fetch('hsk1.csv')
@@ -61,7 +61,7 @@
             var rows = data.split('\n');
             for (var i = 1; i < rows.length; i++) {
               var columns = rows[i].split(',');
-              pinyinWords.push({ character: columns[0], pinyin: columns[1], hv: columns[2], canton: columns[3] });
+              words.push({ character: columns[0], pinyin: columns[1], hv: columns[2], canton: columns[3] });
             }
           })
           .catch(error => {
@@ -71,14 +71,19 @@
 
       // Load word list on page load
       loadWords();
+
+      // get a random word and return the index
+      function getRandomWordIndex() {
+        return Math.floor(Math.random() * words.length);
+      }
       
-      var currentIndex = 0;
+      var currentIndex = getRandomWordIndex();
       var canvas = document.getElementById("drawingCanvas");
       var context = canvas.getContext("2d");
       var isDrawing = false;
 
       function resetWord(word) {
-        $("#wordDisplay").text(word.pinyin + " (" + word.canton + ")");
+        $("#spelling").text(word.pinyin + " (" + word.canton + ")");
         $("#resultDisplay").text("");
         clearDrawing();
       }
@@ -127,11 +132,32 @@
 
       $("#nextButton").click(function() {
         let word;
+        let newIndex;
         do {
-          currentIndex = Math.floor(Math.random() * pinyinWords.length);
-          word = pinyinWords[currentIndex];
-        } while ($("#wordDisplay").text() == word.pinyin) 
+          newIndex = getRandomWordIndex();
+          word = words[newIndex];
+
+          // continue if same word or word is in skippedWords array
+          if (skippedWords.includes(word.character)) continue;
+          if (newIndex == currentIndex) continue;
+          currentIndex = newIndex;
+          break;
+        } while (true) 
         resetWord(word);
+      });
+
+      // put word into skippedWords array and save to local storage
+      $("#skipButton").click(function() {
+        skippedWords.push(words[currentIndex].character);
+        $("#nbSkipped").text(skippedWords.length);
+        localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
+        $("#nextButton").click();
+      });
+
+      $("#resetSkipButton").click(function() {
+        skippedWords = [];
+        $("#nbSkipped").text(skippedWords.length);
+        localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
       });
 
       $("#clearButton").click(function() {
@@ -139,7 +165,7 @@
       });
 
       $("#checkButton").click(function() {
-        checkWord(pinyinWords[currentIndex]);
+        checkWord(words[currentIndex]);
       });
 
       canvas.addEventListener("mousedown", startDrawing);
