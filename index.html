@@ -82,11 +82,7 @@
       }
 
       getRandomWordIndex() {
-        let index;
-        do {
-          index = Math.floor(Math.random() * this.words.length);
-        } while (index == this.words.length) // unbelievable but has occurred in iOS
-        return index;
+        return Math.floor(Math.random() * this.words.length);
       }
 
       hasWords() {
@@ -104,6 +100,7 @@
         while (this.hasWords()) {
           newIndex = this.getRandomWordIndex();
           word = this.words[newIndex];
+          if (!word || !word.character) continue;
           if (this.isSkipped(word)) continue;
           this.currentIndex = newIndex;
           break;
