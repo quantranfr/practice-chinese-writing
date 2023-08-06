@@ -67,6 +67,7 @@
             var rows = data.split('\n');
             for (var i = 1; i < rows.length; i++) {
               var columns = rows[i].split(',');
+              if (columns.length < 4) continue;
               this.words.push({ character: columns[0], pinyin: columns[1], hv: columns[2], canton: columns[3] });
             }
             this.updateUI();
@@ -100,7 +101,6 @@
         while (this.hasWords()) {
           newIndex = this.getRandomWordIndex();
           word = this.words[newIndex];
-          if (!word || !word.character) continue;
           if (this.isSkipped(word)) continue;
           this.currentIndex = newIndex;
           break;
@@ -111,7 +111,7 @@
 
       skipWord() {
         let word = this.getCurrentWord();
-        if (word && word.character) { // don't know why but sometimes word.character is ''
+        if (word) {
           this.skippedWords.push(word.character);
           this.updateStorage();
           this.nextWord();
