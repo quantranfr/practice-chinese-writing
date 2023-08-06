@@ -140,6 +140,9 @@
       updateUI() {
         $("#skipButton").prop('disabled', this.words.length == this.skippedWords.length);
         $("#nbSkipped").text(this.skippedWords.length);
+        if (this.skippedWords.length > 150) {
+          alert(JSON.stringify(this.skippedWords));
+        }
 
         let word = this.getCurrentWord();
         if (word) {
