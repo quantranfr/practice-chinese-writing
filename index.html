@@ -5,15 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
   <style>
-    #drawingCanvas {
-      border: 1px solid #ccc;
-    }
-    #resultDisplay {
-      font-size: 40px;
-    }
-    footer {
-      font-size: 12px;
-    }
     body {
       min-height: 100vh;
       display: flex;
@@ -22,6 +13,18 @@
 
     .content {
       flex: 1;
+    }
+
+    #drawingCanvas {
+      border: 1px solid #ccc;
+    }
+
+    #character {
+      font-size: 40px;
+    }
+
+    footer {
+      font-size: 12px;
     }
   </style>
 </head>
@@ -38,7 +41,10 @@
     <br><br>
     <button id="clearButton" class="btn btn-secondary">Clear</button>
     <button id="checkButton" class="btn btn-success">Check</button>
-    <div id="resultDisplay"></div>
+    <div>
+      <span id="character"></span>
+      <span id="hv"></span>
+    </div>
   </div>
   <footer class="container text-center my-2">
     <p class="mb-0">Powered by Quan Tran &copy; <span id="currentYear"></span> | Subject to Creative Commons Attribution-NonCommercial License</p>
@@ -46,12 +52,14 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script>
-    $(document).ready(function() {
-      var words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
-      var skippedWords = JSON.parse(localStorage.getItem("skippedWords")) || []; // array of words (character only) that have been skipped, load from local storage
-      $("#nbSkipped").text(skippedWords.length);
-      
-      function loadWords() {
+    class WordList {
+      constructor() {
+        this.words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
+        this.skippedWords = []; // ["你", "我",...]
+        this.currentIndex = undefined;
+      }
+
+      loadWords() {
         fetch('hsk1.csv')
           .then(response => response.text())
           .then(data => {
@@ -59,39 +67,108 @@
             var rows = data.split('\n');
             for (var i = 1; i < rows.length; i++) {
               var columns = rows[i].split(',');
-              words.push({ character: columns[0], pinyin: columns[1], hv: columns[2], canton: columns[3] });
+              this.words.push({ character: columns[0], pinyin: columns[1], hv: columns[2], canton: columns[3] });
             }
+            this.updateUI();
           })
           .catch(error => {
             console.error('Error loading word list:', error);
           });
       }
 
-      // Load word list on page load
-      loadWords();
-
-      // get a random word and return the index
-      function getRandomWordIndex() {
-        return Math.floor(Math.random() * words.length);
+      loadSkippedWords() {
+        this.skippedWords = JSON.parse(localStorage.getItem("skippedWords")) || [];
+        this.updateUI();
       }
-      
-      var currentIndex = getRandomWordIndex();
+
+      getRandomWordIndex() {
+        return Math.floor(Math.random() * this.words.length);
+      }
+
+      hasWords() {
+        return this.words.length > this.skippedWords.length;
+      }
+
+      isSkipped(word) {
+        return this.skippedWords.includes(word.character);
+      }
+
+      nextWord() {
+        let newIndex;
+        let word;
+        
+        while (this.hasWords()) {
+          newIndex = this.getRandomWordIndex();
+          word = this.words[newIndex];
+          if (this.isSkipped(word)) continue;
+          this.currentIndex = newIndex;
+          break;
+        }
+
+        this.updateUI();
+      }
+
+      skipWord() {
+        let word = this.getCurrentWord();
+        if (word) {
+          this.skippedWords.push(word.character);
+          this.updateStorage();
+          this.nextWord();
+        }
+      }
+
+      resetSkipped() {
+        this.skippedWords = [];
+        this.updateStorage();
+        this.updateUI();
+      }
+
+      getCurrentWord() {
+        // if current index is defined, return the word, otherwise return undefined
+        return this.currentIndex != undefined ? this.words[this.currentIndex] : undefined;
+      }
+
+      resetSkippedWords() {
+        this.skippedWords = [];
+        this.updateStorage();
+      }
+
+      updateUI() {
+        $("#skipButton").prop('disabled', this.words.length == this.skippedWords.length);
+        $("#nbSkipped").text(this.skippedWords.length);
+
+        let word = this.getCurrentWord();
+        if (word) {
+          $("#spelling").text(word.pinyin + " (" + word.canton + ")");
+        }
+        $("#character").text('');
+        $("#hv").text('');
+      }
+
+      check() {
+        let word = this.getCurrentWord();
+        if (word) {
+          $("#character").text(word.character);
+          $("#hv").text(' (' + word.hv + ')');
+        }
+      }
+
+      updateStorage() {
+        localStorage.setItem("skippedWords", JSON.stringify(this.skippedWords));
+      }
+    }
+    
+    $(document).ready(function() {
+      var wordList = new WordList();
+      wordList.loadWords();
+      wordList.loadSkippedWords();
+
       var canvas = document.getElementById("drawingCanvas");
       var context = canvas.getContext("2d");
       var isDrawing = false;
-
-      function resetWord(word) {
-        $("#spelling").text(word.pinyin + " (" + word.canton + ")");
-        $("#resultDisplay").text("");
-        clearDrawing();
-      }
       
       function clearDrawing() {
         context.clearRect(0, 0, canvas.width, canvas.height);
-      }
-
-      function checkWord(word) {
-        $("#resultDisplay").text(word.character + " (" + word.hv + ")");
       }
 
       function startDrawing(event) {
@@ -129,36 +206,18 @@
       }
 
       $("#nextButton").click(function() {
-        let word;
-        let newIndex;
-        while (words.length - skippedWords.length > 0) {
-          newIndex = getRandomWordIndex();
-          word = words[newIndex];
-
-          // continue if same word or word is in skippedWords array
-          if (skippedWords.includes(word.character)) continue;
-          if (newIndex == currentIndex) continue;
-          resetWord(word);
-          currentIndex = newIndex;
-          break;
-        }
-        $(this).prop('disabled', words.length - skippedWords.length <= 1);
+        wordList.nextWord();
+        clearDrawing();
       });
 
       // put word into skippedWords array and save to local storage
       $("#skipButton").click(function() {
-        skippedWords.push(words[currentIndex].character);
-        $("#nbSkipped").text(skippedWords.length);
-        localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
-        $("#nextButton").click();
-        $(this).prop('disabled', words.length == skippedWords.length);
+        wordList.skipWord();
+        clearDrawing();
       });
 
       $("#resetSkipButton").click(function() {
-        skippedWords = [];
-        $("#nbSkipped").text(skippedWords.length);
-        localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
-        $('#nextButton,#skipButton').prop('disabled', false);
+        wordList.resetSkipped();
       });
 
       $("#clearButton").click(function() {
@@ -166,7 +225,7 @@
       });
 
       $("#checkButton").click(function() {
-        checkWord(words[currentIndex]);
+        wordList.check();
       });
 
       canvas.addEventListener("mousedown", startDrawing);
