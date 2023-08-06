@@ -114,7 +114,7 @@
 
       skipWord() {
         let word = this.getCurrentWord();
-        if (word) {
+        if (word && word.character) { // don't know why but sometimes word.character is ''
           this.skippedWords.push(word.character);
           this.updateStorage();
           this.nextWord();
