@@ -85,7 +85,7 @@
         let index;
         do {
           index = Math.floor(Math.random() * this.words.length);
-        } while (index != this.words.length) // unbelievable but has occurred in iOS
+        } while (index == this.words.length) // unbelievable but has occurred in iOS
         return index;
       }
 
