@@ -140,6 +140,7 @@
         let word = this.getCurrentWord();
         if (word) {
           $("#spelling").text(word.pinyin + " (" + word.canton + ")");
+          alert(JSON.stringify(word));
         }
         $("#character").text('');
         $("#hv").text('');
