@@ -46,13 +46,11 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
   <script>
-    // alert('hi');
     $(document).ready(function() {
       var words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
       var skippedWords = JSON.parse(localStorage.getItem("skippedWords")) || []; // array of words (character only) that have been skipped, load from local storage
       $("#nbSkipped").text(skippedWords.length);
-      // alert("Skipped words: " + skippedWords);
-
+      
       function loadWords() {
         fetch('hsk1.csv')
           .then(response => response.text())
@@ -133,17 +131,18 @@
       $("#nextButton").click(function() {
         let word;
         let newIndex;
-        do {
+        while (words.length - skippedWords.length > 0) {
           newIndex = getRandomWordIndex();
           word = words[newIndex];
 
           // continue if same word or word is in skippedWords array
           if (skippedWords.includes(word.character)) continue;
           if (newIndex == currentIndex) continue;
+          resetWord(word);
           currentIndex = newIndex;
           break;
-        } while (true) 
-        resetWord(word);
+        }
+        $(this).prop('disabled', words.length - skippedWords.length <= 1);
       });
 
       // put word into skippedWords array and save to local storage
@@ -152,12 +151,14 @@
         $("#nbSkipped").text(skippedWords.length);
         localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
         $("#nextButton").click();
+        $(this).prop('disabled', words.length == skippedWords.length);
       });
 
       $("#resetSkipButton").click(function() {
         skippedWords = [];
         $("#nbSkipped").text(skippedWords.length);
         localStorage.setItem("skippedWords", JSON.stringify(skippedWords));
+        $('#nextButton,#skipButton').prop('disabled', false);
       });
 
       $("#clearButton").click(function() {
