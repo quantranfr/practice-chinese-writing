@@ -30,7 +30,7 @@
 </head>
 <body>
   <div class="container content">
-    <h1>Practice Chinese Writing (HSK 1) - Sandbox</h1>
+    <h1>Practice Chinese Writing (HSK 1)</h1>
     <button id="nextButton" class="btn btn-primary">Next word</button>
     <button id="skipButton" class="btn btn-warning">Skip</button>
     <button id="resetSkipButton" class="btn btn-secondary">Reset skip</button>
@@ -82,7 +82,11 @@
       }
 
       getRandomWordIndex() {
-        return Math.floor(Math.random() * this.words.length);
+        let index;
+        do {
+          index = Math.floor(Math.random() * this.words.length);
+        } while (index == this.words.length) // unbelievable but has occurred in iOS
+        return index;
       }
 
       hasWords() {
@@ -96,17 +100,10 @@
       nextWord() {
         let newIndex;
         let word;
-        let i = 0;
+        
         while (this.hasWords()) {
           newIndex = this.getRandomWordIndex();
           word = this.words[newIndex];
-          if (word.pinyin == undefined) {
-            alert(this.currentIndex);
-          } else {
-            i += 1;
-            if (i == 10000) {break;}
-            continue;
-          }
           if (this.isSkipped(word)) continue;
           this.currentIndex = newIndex;
           break;
@@ -143,11 +140,13 @@
       updateUI() {
         $("#skipButton").prop('disabled', this.words.length == this.skippedWords.length);
         $("#nbSkipped").text(this.skippedWords.length);
-        let self = this;
+        if (this.skippedWords.length > 150) {
+          alert(JSON.stringify(this.skippedWords));
+        }
+
         let word = this.getCurrentWord();
         if (word) {
           $("#spelling").text(word.pinyin + " (" + word.canton + ")");
-          alert(JSON.stringify(word));
         }
         $("#character").text('');
         $("#hv").text('');
