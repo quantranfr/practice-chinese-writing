@@ -1,0 +1,22 @@
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+}
+
+#drawingCanvas {
+  border: 1px solid #ccc;
+}
+
+#character {
+  font-size: 40px;
+}
+
+footer {
+  font-size: 12px;
+}
+
