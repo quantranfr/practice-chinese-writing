@@ -167,6 +167,8 @@ $(document).ready(function () {
     wordList = new WordList(filename);
   });
 
+  $("#selectLevel").trigger('change');
+
   $("#nextButton").click(function () {
     wordList.nextWord();
     clearDrawing();
