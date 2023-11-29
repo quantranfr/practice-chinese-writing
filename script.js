@@ -1,11 +1,21 @@
 class WordList {
+  // create an enum for the last action
+  static LastAction = {
+    REVIEW: "review",
+    SKIP: "skip",
+    RESET: "reset",
+    NEXT: "next",
+  };
+
   constructor(filename) {
     this.filename = filename;
     this.words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
-    this.skippedWords = []; // ["你", "我",...]
-    this.currentIndex = undefined;
+    this.skippedWords = [];
+    this.notSeenWords = [];
+    this.needPracticeWords = [];
+    this.currentWord = undefined;
+    this.lastAction = undefined;
     this.loadWords();
-    this.loadSkippedWords();
   }
 
   loadWords() {
@@ -24,7 +34,7 @@ class WordList {
             canton: columns[3],
           });
         }
-        this.updateUI();
+        this.loadLocalStorage();
         this.nextWord();
       })
       .catch((error) => {
@@ -32,88 +42,138 @@ class WordList {
       });
   }
 
-  loadSkippedWords() {
-    this.skippedWords = JSON.parse(localStorage.getItem(this.filename)) || [];
+  loadLocalStorage() {
+    this.skippedWords = JSON.parse(localStorage.getItem(`${this.filename} skipped`)) || [];
+    this.needPracticeWords = JSON.parse(localStorage.getItem(`${this.filename} needPractice`)) || [];
+
+    const skippedCharacters = this.skippedWords.map((word) => word.character);
+    const needPracticeCharacters = this.needPracticeWords.map((word) => word.character);
+
+    // recalculate notSeenWords
+    this.notSeenWords = this.words.filter(
+      (word) =>
+        !skippedCharacters.includes(word.character) &&
+        !needPracticeCharacters.includes(word.character)
+    );
+  }
+
+  getRandomWord(wordList) {
+    if (wordList.length === 0) {
+      return undefined;
+    } else if (wordList.length === 1) {
+      return wordList[0];
+    } else {
+      let word = this.currentWord;
+      let randomIndex;
+      while (word === this.currentWord) {
+        randomIndex = Math.floor(Math.random() * wordList.length);
+        word = wordList[randomIndex];
+      }
+      return word;
+    }
+  }
+
+  popWord(wordList, word) {
+    if (wordList.length > 0) {
+      let index = wordList.indexOf(word);
+      if (index >= 0) {
+        wordList.splice(index, 1)[0];
+      }
+    }
+  }
+
+  popRandomWord(wordList) {
+    if (wordList.length > 0) {
+      let randomIndex = Math.floor(Math.random() * wordList.length);
+      return wordList.splice(randomIndex, 1)[0];
+    } else {
+      return undefined;
+    }
+  }
+
+  pushWord(wordList, word) {
+    if (word && !wordList.includes(word)) {
+      wordList.push(word);
+    }
+  }
+
+  setCurrentWord(word) {
+    this.currentWord = word;
+    this.updateStorage();
     this.updateUI();
   }
 
-  getRandomWordIndex() {
-    return Math.floor(Math.random() * this.words.length);
-  }
-
-  hasWords() {
-    return this.words.length > this.skippedWords.length;
-  }
-
-  isSkipped(word) {
-    return this.skippedWords.includes(word.character);
+  review() {
+    this.pushWord(this.needPracticeWords, this.currentWord);
+    this.setCurrentWord(this.getRandomWord(this.needPracticeWords));
+    this.lastAction = WordList.LastAction.REVIEW;
   }
 
   nextWord() {
-    let newIndex;
-    let word;
-
-    while (this.hasWords()) {
-      newIndex = this.getRandomWordIndex();
-      word = this.words[newIndex];
-      if (this.isSkipped(word)) continue;
-      this.currentIndex = newIndex;
-      break;
-    }
-
-    this.updateUI();
+    this.pushWord(this.needPracticeWords, this.currentWord);
+    this.setCurrentWord(this.popRandomWord(this.notSeenWords));
+    this.lastAction = WordList.LastAction.NEXT;
   }
 
   skipWord() {
-    let word = this.getCurrentWord();
-    if (word) {
-      this.skippedWords.push(word.character);
-      this.updateStorage();
-      this.nextWord();
+    this.pushWord(this.skippedWords, this.currentWord);
+    this.popWord(this.needPracticeWords, this.currentWord);
+    this.popWord(this.notSeenWords, this.currentWord);
+
+    if (this.lastAction === WordList.LastAction.REVIEW) {
+      this.setCurrentWord(this.getRandomWord(this.needPracticeWords));
+    }
+
+    if (this.lastAction === WordList.LastAction.NEXT) {
+      this.setCurrentWord(this.popRandomWord(this.notSeenWords));
     }
   }
 
-  resetSkipped() {
+  reset() {
+    this.currentWord = undefined;
     this.skippedWords = [];
-    this.updateStorage();
-    this.updateUI();
-  }
-
-  getCurrentWord() {
-    // if current index is defined, return the word, otherwise return undefined
-    return this.currentIndex != undefined
-      ? this.words[this.currentIndex]
-      : undefined;
-  }
-
-  resetSkippedWords() {
-    this.skippedWords = [];
-    this.updateStorage();
+    this.needPracticeWords = [];
+    this.notSeenWords = this.words.slice();
+    this.setCurrentWord(undefined);
   }
 
   updateUI() {
-    $("#nextButton, #resetSkipButton").prop("disabled", false);
-    $("#skipButton").prop("disabled", this.words.length == this.skippedWords.length);
-    $("#nbSkipped").text(this.skippedWords.length);
+    $("#reviewButton, #nextButton, #resetButton").prop("disabled", false);
+    $("#reviewButton").prop("disabled", this.needPracticeWords.length == 0);
+    $("#reviewButton").html(`Review (${this.needPracticeWords.length})`);
+    $("#skipButton").prop("disabled", !this.currentWord || this.skippedWords.length == this.words.length);
+    $("#skipButton").html(`Skip (${this.skippedWords.length})`);
+    $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
+    $("#nextButton").html(`Next (${this.notSeenWords.length})`);
+    $("#hintButton").prop("disabled", !this.currentWord);
+    $("#checkButton").prop("disabled", !this.currentWord);
 
-    let word = this.getCurrentWord();
-    if (word) {
-      $("#spelling").text(word.pinyin + " (" + word.canton + ")");
+    if (this.currentWord) {
+      $("#spelling").text(`${this.currentWord.pinyin} (Cantonese: ${this.currentWord.canton}, Hán Việt: ${this.currentWord.hv})`);
+    } else {
+      $("#spelling").text("");
     }
     $("#character").text("");
-    $("#hv").text("");
+  }
+
+  hint() {
+    if (this.currentWord) {
+      $("#character").text(this.currentWord.character);
+      setTimeout(() => { // disappear after 0.4 seconds
+        $("#character").text("");
+      }, 400);
+    }
   }
 
   check() {
-    let word = this.getCurrentWord();
-    if (word) {
-      $("#character").text(word.character);
-      $("#hv").text(" (" + word.hv + ")");
+    if (this.currentWord) {
+      $("#character").text(this.currentWord.character);
     }
   }
 
   updateStorage() {
-    localStorage.setItem(this.filename, JSON.stringify(this.skippedWords));
+    localStorage.setItem(`${this.filename} skipped`, JSON.stringify(this.skippedWords));
+    localStorage.setItem(`${this.filename} needPractice`, JSON.stringify(this.needPracticeWords));
   }
 }
 
@@ -127,16 +187,22 @@ $(document).ready(function () {
     context.clearRect(0, 0, canvas.width, canvas.height);
   }
 
+  function getXY(event) {
+    var x, y;
+    var rect = canvas.getBoundingClientRect(); // Get canvas position
+    if (event.type === "touchmove") {
+      x = event.touches[0].pageX - rect.left;
+      y = event.touches[0].pageY - rect.top;
+    } else {
+      x = event.pageX - rect.left;
+      y = event.pageY - rect.top;
+    }
+    return { x, y };
+  }
+
   function startDrawing(event) {
     isDrawing = true;
-    var x, y;
-    if (event.type === "touchstart") {
-      x = event.touches[0].pageX - canvas.offsetLeft;
-      y = event.touches[0].pageY - canvas.offsetTop;
-    } else {
-      x = event.pageX - canvas.offsetLeft;
-      y = event.pageY - canvas.offsetTop;
-    }
+    var { x, y } = getXY(event);
     context.beginPath();
     context.moveTo(x, y);
   }
@@ -144,14 +210,7 @@ $(document).ready(function () {
   function draw(event) {
     event.preventDefault(); // Prevent default scrolling behavior
     if (!isDrawing) return;
-    var x, y;
-    if (event.type === "touchmove") {
-      x = event.touches[0].pageX - canvas.offsetLeft;
-      y = event.touches[0].pageY - canvas.offsetTop;
-    } else {
-      x = event.pageX - canvas.offsetLeft;
-      y = event.pageY - canvas.offsetTop;
-    }
+    var { x, y } = getXY(event);
     context.lineTo(x, y);
     context.lineWidth = 3; // Increase the stroke width value as desired
     context.stroke();
@@ -169,6 +228,11 @@ $(document).ready(function () {
 
   $("#selectLevel").trigger('change');
 
+  $("#reviewButton").click(function () {
+    wordList.review();
+    clearDrawing();
+  });
+
   $("#nextButton").click(function () {
     wordList.nextWord();
     clearDrawing();
@@ -180,12 +244,16 @@ $(document).ready(function () {
     clearDrawing();
   });
 
-  $("#resetSkipButton").click(function () {
-    wordList.resetSkipped();
+  $("#resetButton").click(function () {
+    wordList.reset();
   });
 
   $("#clearButton").click(function () {
     clearDrawing();
+  });
+
+  $("#hintButton").click(function () {
+    wordList.hint();
   });
 
   $("#checkButton").click(function () {
@@ -205,4 +273,3 @@ $(document).ready(function () {
   var year = new Date().getFullYear();
   $("#currentYear").text(year);
 });
-
