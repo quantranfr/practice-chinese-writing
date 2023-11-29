@@ -17,8 +17,20 @@ body {
   font-size: 24px;
 }
 
+#check-zone {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+#check-zone .btn-group {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+
 #character {
-  font-size: 40px;
+  font-size: 32px;
 }
 
 footer {

@@ -15,6 +15,7 @@ class WordList {
     this.needPracticeWords = [];
     this.currentWord = undefined;
     this.lastAction = undefined;
+    this.writer = new Array(5).fill(undefined); // 5 HanziWriter object;
     this.loadWords();
   }
 
@@ -154,6 +155,7 @@ class WordList {
       $("#spelling").text("");
     }
     $("#character").text("");
+    this.unwrite();
   }
 
   hint() {
@@ -165,9 +167,38 @@ class WordList {
     }
   }
 
+  write(pos, character) { // writer is a HanziWriter object
+    if (this.writer[pos] == undefined) {
+      this.writer[pos] = HanziWriter.create('ch' + pos, character, {
+        width: 60,
+        height: 60,
+        padding: 2,
+        delayBetweenStrokes: 150,
+        delayBetweenLoops: 2000,
+        radicalColor: '#168F16',
+      });
+    } else {
+      this.writer[pos].setCharacter(character);
+    }
+    this.writer[pos].showOutline();
+    this.writer[pos].loopCharacterAnimation();
+  }
+
+  unwrite() {
+    this.writer.forEach((writer) => {
+      if (writer) {
+        writer.hideCharacter();
+        writer.hideOutline();
+      }
+    });
+  }
+
   check() {
     if (this.currentWord) {
       $("#character").text(this.currentWord.character);
+      Array.from(this.currentWord.character).forEach((char, i) => {
+        this.write(i, char);
+      });
     }
   }
 
@@ -191,11 +222,11 @@ $(document).ready(function () {
     var x, y;
     var rect = canvas.getBoundingClientRect(); // Get canvas position
     if (event.type === "touchmove") {
-      x = event.touches[0].pageX - rect.left;
-      y = event.touches[0].pageY - rect.top;
+      x = event.touches[0].pageX - rect.left - window.scrollX;
+      y = event.touches[0].pageY - rect.top - window.scrollY;
     } else {
-      x = event.pageX - rect.left;
-      y = event.pageY - rect.top;
+      x = event.pageX - rect.left - window.scrollX;
+      y = event.pageY - rect.top - window.scrollY;
     }
     return { x, y };
   }

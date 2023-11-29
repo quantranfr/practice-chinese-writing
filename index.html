@@ -8,8 +8,8 @@
 </head>
 <body>
   <div class="container content">
-    <h1>Practice Chinese Writing</h1>
-    <select class="form-control" id="selectLevel">
+    <h2 class="my-3">Practice Chinese Writing</h2>
+    <select class="form-control" id="selectLevel" style="width: 382px;">
       <option value="">Chọn trình độ</option>
       <option value="hsk1.csv">HSK 1</option>
       <option value="hsk2.csv">HSK 2</option>
@@ -25,12 +25,21 @@
     <div id="spelling"></div>
     <div style="position: relative;">
       <canvas id="drawingCanvas" width="380px" height="300px"></canvas>
-      <button id="clearButton" class="btn cross-button" style="position: absolute; top: 0; left: 0;">&#10005;</button>
+      <button id="clearButton" class="btn cross-button" style="position: absolute; top: 0; left: 335px;">&#10005;</button>
     </div>
-    <button id="hintButton" class="btn btn-secondary" disabled>Hint</button>
-    <button id="checkButton" class="btn btn-success" disabled>Check</button>
-    <div>
+    <div id="check-zone">
+      <div class="btn-group">
+        <button id="hintButton" class="btn btn-secondary" disabled>Hint</button>
+        <button id="checkButton" class="btn btn-success" disabled>Check</button>
+      </div>
       <span id="character"></span>
+    </div>
+    <div id="characterHandwriting">
+      <span id="ch0"></span>
+      <span id="ch1"></span>
+      <span id="ch2"></span>
+      <span id="ch3"></span>
+      <span id="ch4"></span>
     </div>
   </div>
   <footer class="container text-center my-2">
@@ -38,7 +47,7 @@
   </footer>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Faker/3.1.0/faker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
