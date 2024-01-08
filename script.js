@@ -1,11 +1,4 @@
 class WordList {
-  // create an enum for the last action
-  static LastAction = {
-    REVIEW: "review",
-    SKIP: "skip",
-    RESET: "reset",
-    NEXT: "next",
-  };
 
   constructor(filename) {
     this.filename = filename;
@@ -14,7 +7,6 @@ class WordList {
     this.notSeenWords = [];
     this.needPracticeWords = [];
     this.currentWord = undefined;
-    this.lastAction = undefined;
     this.writer = new Array(5).fill(undefined); // 5 HanziWriter object;
     this.loadWords();
   }
@@ -100,34 +92,32 @@ class WordList {
 
   setCurrentWord(word) {
     this.currentWord = word;
-    this.updateStorage();
-    this.updateUI();
   }
 
   review() {
-    this.pushWord(this.needPracticeWords, this.currentWord);
     this.setCurrentWord(this.getRandomWord(this.needPracticeWords));
-    this.lastAction = WordList.LastAction.REVIEW;
+    this.updateUI();
+  }
+
+  setHard() {
+    this.popWord(this.notSeenWords, this.currentWord);
+    this.popWord(this.skippedWords, this.currentWord);
+    this.pushWord(this.needPracticeWords, this.currentWord);
+    this.updateStorageHard();
+    this.updateUI();
+  }
+
+  setEasy() {
+    this.popWord(this.notSeenWords, this.currentWord);
+    this.popWord(this.needPracticeWords, this.currentWord);
+    this.pushWord(this.skippedWords, this.currentWord);
+    this.updateStorageEasy();
+    this.updateUI();
   }
 
   nextWord() {
-    this.pushWord(this.needPracticeWords, this.currentWord);
-    this.setCurrentWord(this.popRandomWord(this.notSeenWords));
-    this.lastAction = WordList.LastAction.NEXT;
-  }
-
-  skipWord() {
-    this.pushWord(this.skippedWords, this.currentWord);
-    this.popWord(this.needPracticeWords, this.currentWord);
-    this.popWord(this.notSeenWords, this.currentWord);
-
-    if (this.lastAction === WordList.LastAction.REVIEW) {
-      this.setCurrentWord(this.getRandomWord(this.needPracticeWords));
-    }
-
-    if (this.lastAction === WordList.LastAction.NEXT) {
-      this.setCurrentWord(this.popRandomWord(this.notSeenWords));
-    }
+    this.setCurrentWord(this.getRandomWord(this.notSeenWords));
+    this.updateUI();
   }
 
   reset() {
@@ -136,16 +126,20 @@ class WordList {
     this.needPracticeWords = [];
     this.notSeenWords = this.words.slice();
     this.setCurrentWord(undefined);
+    this.updateStorageEasy();
+    this.updateStorageHard();
+    this.updateUI();
   }
 
   updateUI() {
     $("#reviewButton, #nextButton, #resetButton").prop("disabled", false);
     $("#reviewButton").prop("disabled", this.needPracticeWords.length == 0);
-    $("#reviewButton").html(`Review (${this.needPracticeWords.length})`);
-    $("#skipButton").prop("disabled", !this.currentWord || this.skippedWords.length == this.words.length);
-    $("#skipButton").html(`Skip (${this.skippedWords.length})`);
+    $("#hardButton").prop("disabled", !this.currentWord);
+    $("#hardButton").html(`Hard (${this.needPracticeWords.length})`);
+    $("#easyButton").prop("disabled", !this.currentWord);
+    $("#easyButton").html(`Easy (${this.skippedWords.length})`);
     $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
-    $("#nextButton").html(`Next (${this.notSeenWords.length})`);
+    $("#nextButton").html(`<i class="fas fa-play"></i> (${this.notSeenWords.length})`);
     $("#hintButton").prop("disabled", !this.currentWord);
     $("#checkButton").prop("disabled", !this.currentWord);
 
@@ -202,8 +196,11 @@ class WordList {
     }
   }
 
-  updateStorage() {
+  updateStorageEasy() {
     localStorage.setItem(`${this.filename} skipped`, JSON.stringify(this.skippedWords));
+  }
+
+  updateStorageHard() {
     localStorage.setItem(`${this.filename} needPractice`, JSON.stringify(this.needPracticeWords));
   }
 }
@@ -264,19 +261,24 @@ $(document).ready(function () {
     clearDrawing();
   });
 
+  $("#hardButton").click(function () {
+    wordList.setHard();
+  });
+
+  $("#easyButton").click(function () {
+    wordList.setEasy();
+  });
+
   $("#nextButton").click(function () {
     wordList.nextWord();
     clearDrawing();
   });
 
-  // put word into skippedWords array and save to local storage
-  $("#skipButton").click(function () {
-    wordList.skipWord();
-    clearDrawing();
-  });
-
   $("#resetButton").click(function () {
-    wordList.reset();
+    var confirmation = confirm("Your progression will be lost, are you sure?");
+    if (confirmation) {
+      wordList.reset();
+    }
   });
 
   $("#clearButton").click(function () {

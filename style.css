@@ -8,9 +8,18 @@ body {
   flex: 1;
 }
 
+select {
+  border: 1px solid #555 !important;
+  border-radius: 4px;
+}
+
+.btn-group button, #resetButton {
+  border: 1px solid #555 !important;
+}
+
 #drawingCanvas {
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
+  border: 1px solid #555;
+  border-radius: 4px;
 }
 
 .cross-button {
@@ -21,12 +30,6 @@ body {
   display: flex;
   align-items: center;
   height: 100%;
-}
-
-#check-zone .btn-group {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  margin-right: 10px;
 }
 
 #character {
