@@ -134,12 +134,10 @@ class WordList {
   updateUI() {
     $("#reviewButton, #nextButton, #resetButton").prop("disabled", false);
     $("#reviewButton").prop("disabled", this.needPracticeWords.length == 0);
-    $("#hardButton").prop("disabled", !this.currentWord);
-    $("#hardButton").html(`Hard (${this.needPracticeWords.length})`);
-    $("#easyButton").prop("disabled", !this.currentWord);
-    $("#easyButton").html(`Easy (${this.skippedWords.length})`);
+    $("#reviewButton").html(`<i class="fas fa-sync-alt"></i> ${this.needPracticeWords.length}`);
+    $("#easyLabel").html(`Easy (${this.skippedWords.length})`);
     $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
-    $("#nextButton").html(`<i class="fas fa-play"></i> (${this.notSeenWords.length})`);
+    $("#nextButton").html(`<i class="fas fa-play"></i> ${this.notSeenWords.length}`);
     $("#hintButton").prop("disabled", !this.currentWord);
     $("#checkButton").prop("disabled", !this.currentWord);
 
@@ -258,19 +256,23 @@ $(document).ready(function () {
 
   $("#reviewButton").click(function () {
     wordList.review();
+    wordList.setHard();
+    $("#difficultySwitch").prop("checked", false);
     clearDrawing();
   });
 
-  $("#hardButton").click(function () {
-    wordList.setHard();
-  });
-
-  $("#easyButton").click(function () {
-    wordList.setEasy();
+  $("#difficultySwitch").click(function () {
+    if ($(this).is(":checked")) {
+      wordList.setEasy();
+    } else {
+      wordList.setHard();
+    }
   });
 
   $("#nextButton").click(function () {
     wordList.nextWord();
+    wordList.setHard();
+    $("#difficultySwitch").prop("checked", false);
     clearDrawing();
   });
 
