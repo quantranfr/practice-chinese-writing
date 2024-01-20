@@ -28,7 +28,7 @@ class WordList {
           });
         }
         this.loadLocalStorage();
-        this.nextWord();
+        this.updateUI();
       })
       .catch((error) => {
         console.error("Error loading word list:", error);
