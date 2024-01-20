@@ -121,7 +121,6 @@ class WordList {
   }
 
   reset() {
-    this.currentWord = undefined;
     this.skippedWords = [];
     this.needPracticeWords = [];
     this.notSeenWords = this.words.slice();
@@ -145,6 +144,7 @@ class WordList {
       $("#spelling").text(`${this.currentWord.pinyin} (Cantonese: ${this.currentWord.canton}, Hán Việt: ${this.currentWord.hv})`);
     } else {
       $("#spelling").text("");
+      $("#clearButton").trigger("click");
     }
     $("#character").text("");
     this.unwrite();
