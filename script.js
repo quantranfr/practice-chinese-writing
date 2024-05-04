@@ -1,7 +1,10 @@
+const supabaseUrl = 'https://coqpsrsbanbszisrmpqf.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvcXBzcnNiYW5ic3ppc3JtcHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ3Nzk4OTUsImV4cCI6MjAzMDM1NTg5NX0.6XRjJrM8R6wINsRNnWbUnIHjzC4SWzm1Vu6BThUPHRg'
+
 class WordList {
 
-  constructor(filename) {
-    this.filename = filename;
+  constructor(category) {
+    this.category = category;
     this.words = []; // [{ character: "你", pinyin: "nǐ", hv: "ni", canton: "nei5" },...]
     this.skippedWords = [];
     this.notSeenWords = [];
@@ -11,33 +14,45 @@ class WordList {
     this.loadWords();
   }
 
-  loadWords() {
-    fetch(this.filename)
-      .then((response) => response.text())
-      .then((data) => {
-        // Parse CSV data
-        var rows = data.split("\n");
-        for (var i = 1; i < rows.length; i++) {
-          var columns = rows[i].split(",");
-          if (columns.length < 4) continue;
-          this.words.push({
-            character: columns[0],
-            pinyin: columns[1],
-            hv: columns[2],
-            canton: columns[3],
-          });
-        }
-        this.loadLocalStorage();
-        this.updateUI();
-      })
-      .catch((error) => {
-        console.error("Error loading word list:", error);
+  async loadWords() {
+    const url = `${supabaseUrl}/rest/v1/rpc/get_vocab_by_category`;
+
+    const headers = {
+      'apikey': supabaseKey,
+      'Authorization': 'Bearer ' + supabaseKey,
+      'Content-Type': 'application/json'
+    };
+
+    const category = this.category;
+
+    const body = JSON.stringify({ category });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body
+    });
+
+    const data = await response.json();
+
+    // Parse JSON data
+    for (var i = 0; i < data.length; i++) {
+      this.words.push({
+        character: data[i].simplified,
+        pinyin: data[i].pinyin,
+        hv: data[i].hanviet,
+        canton: data[i].cantonese,
+        english: data[i].english,
+        wohok_link: data[i].wohok_link
       });
+    }
+    this.loadLocalStorage();
+    this.updateUI();
   }
 
   loadLocalStorage() {
-    this.skippedWords = JSON.parse(localStorage.getItem(`${this.filename} skipped`)) || [];
-    this.needPracticeWords = JSON.parse(localStorage.getItem(`${this.filename} needPractice`)) || [];
+    this.skippedWords = JSON.parse(localStorage.getItem(`${this.category} skipped`)) || [];
+    this.needPracticeWords = JSON.parse(localStorage.getItem(`${this.category} needPractice`)) || [];
 
     const skippedCharacters = this.skippedWords.map((word) => word.character);
     const needPracticeCharacters = this.needPracticeWords.map((word) => word.character);
@@ -195,11 +210,11 @@ class WordList {
   }
 
   updateStorageEasy() {
-    localStorage.setItem(`${this.filename} skipped`, JSON.stringify(this.skippedWords));
+    localStorage.setItem(`${this.category} skipped`, JSON.stringify(this.skippedWords));
   }
 
   updateStorageHard() {
-    localStorage.setItem(`${this.filename} needPractice`, JSON.stringify(this.needPracticeWords));
+    localStorage.setItem(`${this.category} needPractice`, JSON.stringify(this.needPracticeWords));
   }
 }
 
@@ -246,13 +261,13 @@ $(document).ready(function () {
     isDrawing = false;
   }
 
-  $("#selectLevel").change(function () {
-    var filename = $(this).val();
-    if (filename === "") return;
-    wordList = new WordList(filename);
+  $("#selectCategory").change(function () {
+    var category = $(this).val();
+    if (category === "") return;
+    wordList = new WordList(category);
   });
 
-  $("#selectLevel").trigger('change');
+  $("#selectCategory").trigger('change');
 
   $("#reviewButton").click(function () {
     wordList.review();
