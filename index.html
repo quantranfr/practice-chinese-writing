@@ -42,10 +42,8 @@
       <button id="clearButton" class="btn cross-button" style="position: absolute; top: 0; left: 335px;">&#10005;</button>
     </div>
     <div id="check-zone">
-      <div class="btn-group my-2 mr-2">
-        <button id="hintButton" class="btn btn-secondary" disabled>Hint</button>
-        <button id="checkButton" class="btn btn-success" disabled>Check</button>
-      </div>
+      <button id="detailsButton" class="btn btn-secondary" disabled>?</button>
+      <button id="checkButton" class="btn btn-success mx-2" disabled>Check</button>
       <span id="character"></span>
     </div>
     <div id="characterHandwriting">
@@ -59,6 +57,23 @@
   <footer class="container text-center my-2">
     <p class="mb-0">Powered by Quan Tran &copy; <span id="currentYear"></span> | Subject to Creative Commons Attribution-NonCommercial License</p>
   </footer>
+  <!-- Modal -->
+  <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detailsModalLabel">Explanation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="detailsModalBody">
+          <!-- Details content will be inserted here -->
+        </div>
+        <div class="modal-footer">
+          <p>© English definition from wohok.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
   <script src="script.js"></script>

@@ -152,7 +152,7 @@ class WordList {
     $("#easyLabel").html(`Easy (${this.skippedWords.length})`);
     $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
     $("#nextButton").html(`<i class="fas fa-play"></i> ${this.notSeenWords.length}`);
-    $("#hintButton").prop("disabled", !this.currentWord);
+    $("#detailsButton").prop("disabled", !this.currentWord);
     $("#checkButton").prop("disabled", !this.currentWord);
 
     if (this.currentWord) {
@@ -165,12 +165,13 @@ class WordList {
     this.unwrite();
   }
 
-  hint() {
+  showDetails() {
     if (this.currentWord) {
-      $("#character").text(this.currentWord.character);
-      setTimeout(() => { // disappear after 0.4 seconds
-        $("#character").text("");
-      }, 400);
+      const english = this.currentWord.english.map(e => `${e.part_of_speech}: ${e.meaning}`).join('<br>');
+      const wohokLink = this.currentWord.wohok_link ? `<br><br><a href="${this.currentWord.wohok_link}" target="_blank">Show usage</a>` : '';
+      const content = english + wohokLink;
+      $('#detailsModalBody').html(content); // Set the content of the modal body
+      $('#detailsModal').modal('show'); // Show the modal
     }
   }
 
@@ -302,8 +303,8 @@ $(document).ready(function () {
     clearDrawing();
   });
 
-  $("#hintButton").click(function () {
-    wordList.hint();
+  $("#detailsButton").click(function () {
+    wordList.showDetails();
   });
 
   $("#checkButton").click(function () {
