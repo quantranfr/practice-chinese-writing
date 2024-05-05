@@ -29,7 +29,7 @@ select {
 #check-zone {
   display: flex;
   align-items: center;
-  height: 100%;
+  height: 48px;
 }
 
 #character {
