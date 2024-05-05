@@ -152,11 +152,10 @@ class WordList {
     $("#easyLabel").html(`Easy (${this.skippedWords.length})`);
     $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
     $("#nextButton").html(`<i class="fas fa-play"></i> ${this.notSeenWords.length}`);
-    $("#detailsButton").prop("disabled", !this.currentWord);
     $("#checkButton").prop("disabled", !this.currentWord);
 
     if (this.currentWord) {
-      $("#spelling").text(`${this.currentWord.pinyin} (Cantonese: ${this.currentWord.canton}, Hán Việt: ${this.currentWord.hv})`);
+      $("#spelling").text(`${this.currentWord.pinyin}`);
     } else {
       $("#spelling").text("");
       $("#clearButton").trigger("click");
@@ -167,9 +166,32 @@ class WordList {
 
   showDetails() {
     if (this.currentWord) {
-      const english = this.currentWord.english.map(e => `${e.part_of_speech}: ${e.meaning}`).join('<br>');
-      const wohokLink = this.currentWord.wohok_link ? `<br><br><a href="${this.currentWord.wohok_link}" target="_blank">Show usage</a>` : '';
-      const content = english + wohokLink;
+      const cantonese = this.currentWord.canton
+        ? `<br>Cantonese: ${this.currentWord.canton}`
+        : '';
+
+      const hanviet = this.currentWord.hv
+        ? `<br>Hán Việt: ${this.currentWord.hv}`
+        : '';
+
+      const english = this.currentWord.english
+        .map(e => `${e.part_of_speech}: ${e.meaning}`)
+        .join('<br>');
+
+      const wohokLink = this.currentWord.wohok_link
+        ? `<a href="${this.currentWord.wohok_link}" target="_blank">Show usage</a>`
+        : '';
+
+      const content = [
+        '<strong style="color: #666;">Pronunciation</strong>',
+        cantonese,
+        hanviet,
+        '<br><br><strong style="color: #666;">Definition</strong><br>',
+        english,
+        '<br><br>',
+        wohokLink
+      ].join('');
+
       $('#detailsModalBody').html(content); // Set the content of the modal body
       $('#detailsModal').modal('show'); // Show the modal
     }
