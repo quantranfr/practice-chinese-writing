@@ -183,7 +183,7 @@ class WordList {
         : '';
 
       const content = [
-        '<strong style="color: #666;">Pronunciation</strong>',
+        '<strong style="color: #666;">Other pronunciations</strong>',
         cantonese,
         hanviet,
         '<br><br><strong style="color: #666;">Definition</strong><br>',
