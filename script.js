@@ -1,5 +1,5 @@
-const supabaseUrl = 'https://coqpsrsbanbszisrmpqf.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvcXBzcnNiYW5ic3ppc3JtcHFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ3Nzk4OTUsImV4cCI6MjAzMDM1NTg5NX0.6XRjJrM8R6wINsRNnWbUnIHjzC4SWzm1Vu6BThUPHRg'
+const supabaseUrl = 'https://nozrmjribdlzawdgxqxu.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5venJtanJpYmRsemF3ZGd4cXh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3ODk5MTIsImV4cCI6MjA1MjM2NTkxMn0.GHHlx6_nAz7O7M8MwxqaWRqbQq1-D46BibBCFbc_cKs'
 
 class WordList {
 
@@ -178,18 +178,18 @@ class WordList {
         .map(e => `${e.part_of_speech}: ${e.meaning}`)
         .join('<br>');
 
+      /*
       const wohokLink = this.currentWord.wohok_link
         ? `<a href="${this.currentWord.wohok_link}" target="_blank">Show usage</a>`
         : '';
+        */
 
       const content = [
         '<strong style="color: #666;">Other pronunciations</strong>',
         cantonese,
         hanviet,
         '<br><br><strong style="color: #666;">Definition</strong><br>',
-        english,
-        '<br><br>',
-        wohokLink
+        english
       ].join('');
 
       $('#detailsModalBody').html(content); // Set the content of the modal body
