@@ -113,6 +113,11 @@ class WordList {
     this.setCurrentWord(this.getRandomWord(this.needPracticeWords));
     this.updateUI();
   }
+  
+  reviewEasy() {
+    this.setCurrentWord(this.getRandomWord(this.skippedWords));
+    this.updateUI();
+  }
 
   setHard() {
     this.popWord(this.notSeenWords, this.currentWord);
@@ -146,14 +151,23 @@ class WordList {
   }
 
   updateUI() {
-    $("#reviewButton, #nextButton, #resetButton").prop("disabled", false);
-    $("#reviewButton").prop("disabled", this.needPracticeWords.length == 0);
-    $("#reviewButton").html(`<i class="fas fa-sync-alt"></i> ${this.needPracticeWords.length}`);
-    $("#easyLabel").html(`Easy (${this.skippedWords.length})`);
-    $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
-    $("#nextButton").html(`<i class="fas fa-play"></i> ${this.notSeenWords.length}`);
-    $("#checkButton").prop("disabled", !this.currentWord);
-
+    if (!this.words.length) {
+      $("#nextButton").html(`<i class="fas fa-play"></i>`).prop("disabled", true);
+      $("#resetButton").prop("disabled", true);
+      $("#reviewHardButton").html(`<i class="fas fa-sync-alt"></i>`).prop("disabled", true);
+      $("#addHardButton").html(`<i class="fas fa-plus"></i> Hard`).prop("disabled", true);
+      $("#addEasyButton").html(`<i class="fas fa-plus"></i> Easy`).prop("disabled", true);
+      $("#reviewEasyButton").html(`<i class="fas fa-sync-alt"></i>`).prop("disabled", true);
+    } else {
+      $("#resetButton").prop("disabled", this.words.length == this.notSeenWords.length);
+      $("#nextButton").prop("disabled", this.notSeenWords.length == 0);
+      $("#nextButton").html(`<i class="fas fa-play"></i> ${this.notSeenWords.length}`);
+      $("#reviewHardButton").prop("disabled", this.needPracticeWords.length == 0);
+      $("#reviewHardButton").html(`<i class="fas fa-sync-alt"></i> ${this.needPracticeWords.length}`);
+      $("#reviewEasyButton").prop("disabled", this.skippedWords.length == 0);
+      $("#reviewEasyButton").html(`<i class="fas fa-sync-alt"></i> ${this.skippedWords.length}`);
+    }
+    $("#addHardButton, #addEasyButton, #checkButton").prop("disabled", !this.currentWord);
     if (this.currentWord) {
       $("#spelling").text(`${this.currentWord.pinyin}`);
     } else {
@@ -242,7 +256,7 @@ class WordList {
 }
 
 $(document).ready(function () {
-  var wordList;
+  var wordList = null;
   var canvas = document.getElementById("drawingCanvas");
   var context = canvas.getContext("2d");
   var isDrawing = false;
@@ -285,32 +299,48 @@ $(document).ready(function () {
   }
 
   $("#selectCategory").change(function () {
+    if (wordList) {
+      wordList.words = [];
+      wordList.currentWord = null;
+      wordList.updateUI();
+    }
     var category = $(this).val();
-    if (category === "") return;
-    wordList = new WordList(category);
+    if (category != "") {
+      wordList = new WordList(category);
+      wordList.updateUI();
+    }
   });
 
   $("#selectCategory").trigger('change');
 
-  $("#reviewButton").click(function () {
+  $("#reviewHardButton").click(function () {
     wordList.review();
     wordList.setHard();
-    $("#difficultySwitch").prop("checked", false);
+    $("#addHardButton").prop("disabled", true);
     clearDrawing();
   });
+  
+  $("#addHardButton").click(function () {
+    if (wordList) { wordList.setHard(); }
+    $(this).prop('disabled', true);
+    $("#addEasyButton").prop('disabled', false);
+  });
 
-  $("#difficultySwitch").click(function () {
-    if ($(this).is(":checked")) {
-      wordList.setEasy();
-    } else {
-      wordList.setHard();
-    }
+  $("#addEasyButton").click(function () {
+    if (wordList) { wordList.setEasy(); }
+    $(this).prop('disabled', true);
+    $("#addHardButton").prop('disabled', false);
+  });
+  
+  $("#reviewEasyButton").click(function () {
+    wordList.reviewEasy();
+    wordList.setEasy();
+    $("#addEasyButton").prop("disabled", true);
+    clearDrawing();
   });
 
   $("#nextButton").click(function () {
     wordList.nextWord();
-    wordList.setHard();
-    $("#difficultySwitch").prop("checked", false);
     clearDrawing();
   });
 

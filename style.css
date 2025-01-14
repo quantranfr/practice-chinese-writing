@@ -8,13 +8,14 @@ body {
   flex: 1;
 }
 
-select {
+#selectCategory {
   border: 1px solid #555 !important;
   border-radius: 4px;
+  flex-grow: 1;
 }
 
-.btn-group button, #resetButton {
-  border: 1px solid #555 !important;
+#nextButton {
+  white-space: nowrap;
 }
 
 #drawingCanvas {
