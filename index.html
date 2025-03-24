@@ -55,6 +55,7 @@
       <button id="clearButton" class="btn cross-button" style="position: absolute; top: 0; left: 335px;">&#10005;</button>
     </div>
     <div id="check-zone" class="mt-2">
+      <button id="quizButton" class="btn btn-warning" style="margin-right: 0.5rem;">Quiz</button>
       <button id="checkButton" class="btn btn-success" style="margin-right: 0.5rem;" disabled>Answer</button>
       <span id="character"></span>
     </div>
@@ -69,7 +70,7 @@
   <footer class="container text-center my-2">
     <p class="mb-0">Powered by Quan Tran &copy; <span id="currentYear"></span> | Subject to Creative Commons Attribution-NonCommercial License</p>
   </footer>
-  <!-- Modal -->
+  <!-- Details Modal -->
   <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -82,6 +83,39 @@
         </div>
         <div class="modal-footer">
           <p>© English definition from wohok.com (mostly)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Quiz Modal -->
+  <div<div class="modal fade" id="quizModal" tabindex="-1" aria-labelledby="quizModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quizModalLabel">Quiz</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="quizModalBody">
+          <!-- Quiz content will be dynamically inserted here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="quizModal" tabindex="-1" aria-labelledby="quizModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quizModalLabel">Quiz</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="quizModalBody">
+          <!-- Quiz content will be dynamically inserted here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
     </div>

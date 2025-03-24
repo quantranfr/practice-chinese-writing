@@ -11,6 +11,7 @@ class WordList {
     this.needPracticeWords = [];
     this.currentWord = undefined;
     this.writer = new Array(5).fill(undefined); // 5 HanziWriter object;
+    this.quizWords = [];
     this.loadWords();
   }
 
@@ -123,7 +124,7 @@ class WordList {
     this.popWord(this.notSeenWords, this.currentWord);
     this.popWord(this.skippedWords, this.currentWord);
     this.pushWord(this.needPracticeWords, this.currentWord);
-    this.updateStorageHard();
+    this.updateStorage();
     this.updateUI();
   }
 
@@ -131,7 +132,7 @@ class WordList {
     this.popWord(this.notSeenWords, this.currentWord);
     this.popWord(this.needPracticeWords, this.currentWord);
     this.pushWord(this.skippedWords, this.currentWord);
-    this.updateStorageEasy();
+    this.updateStorage();
     this.updateUI();
   }
 
@@ -237,6 +238,39 @@ class WordList {
     });
   }
 
+  quiz() {
+    // quit if no current word
+    if (!this.currentWord) {
+      return
+    }
+    
+    // select 4 random words of the same length as the current word
+    const words = this.words.filter((word) => word.character.length === this.currentWord.character.length);
+    this.quizWords = [];
+    this.quizWords.push(this.currentWord);
+    for (let i = 0; i < 3; i++) {
+      let word = this.popRandomWord(words);
+      this.quizWords.push(word);
+    }
+    this.quizWords.sort(() => Math.random() - 0.5);
+    const quizContent = this.quizWords.map((word, i) => {
+      return `<button class="btn btn-outline-primary btn-block quiz-option" data-index="${i}">${word.character}</button>`;
+    }).join('');
+    $('#quizModalBody').html(quizContent);
+    $('#quizModal').modal('show');
+  }
+
+  checkAnswer(index) {
+    const word = this.quizWords[index];
+    if (word.character === this.currentWord.character) {
+      $('#quizModalBody').html(`<p class="text-success">Correct!</p>`);
+      this.setEasy();
+    } else {
+      $('#quizModalBody').html(`<p class="text-danger">Wrong! The correct answer is ${this.currentWord.character}</p>`);
+      this.setHard();
+    }
+  }
+
   check() {
     if (this.currentWord) {
       $("#character").text(this.currentWord.character);
@@ -246,11 +280,8 @@ class WordList {
     }
   }
 
-  updateStorageEasy() {
+  updateStorage() {
     localStorage.setItem(`${this.category} skipped`, JSON.stringify(this.skippedWords));
-  }
-
-  updateStorageHard() {
     localStorage.setItem(`${this.category} needPractice`, JSON.stringify(this.needPracticeWords));
   }
 }
@@ -359,6 +390,10 @@ $(document).ready(function () {
     wordList.showDetails();
   });
 
+  $("#quizButton").click(function() {
+    wordList.quiz();
+  });
+
   $("#checkButton").click(function () {
     wordList.check();
   });
@@ -372,6 +407,11 @@ $(document).ready(function () {
   canvas.addEventListener("touchmove", draw);
   canvas.addEventListener("touchend", stopDrawing);
   canvas.addEventListener("touchcancel", stopDrawing);
+
+  $(document).on("click", ".quiz-option", function () {
+    var index = $(this).data("index");
+    wordList.checkAnswer(index);
+  });
 
   var year = new Date().getFullYear();
   $("#currentYear").text(year);

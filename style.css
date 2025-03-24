@@ -33,6 +33,10 @@ body {
   height: 48px;
 }
 
+.quiz-option {
+  margin-right: 10px;
+}
+
 #character {
   font-size: 32px;
 }
