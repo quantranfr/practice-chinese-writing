@@ -146,8 +146,7 @@ class WordList {
     this.needPracticeWords = [];
     this.notSeenWords = this.words.slice();
     this.setCurrentWord(undefined);
-    this.updateStorageEasy();
-    this.updateStorageHard();
+    this.updateStorage();
     this.updateUI();
   }
 
@@ -168,7 +167,7 @@ class WordList {
       $("#reviewEasyButton").prop("disabled", this.skippedWords.length == 0);
       $("#reviewEasyButton").html(`<i class="fas fa-sync-alt"></i> ${this.skippedWords.length}`);
     }
-    $("#addHardButton, #addEasyButton, #checkButton").prop("disabled", !this.currentWord);
+    $("#addHardButton, #addEasyButton, #quizButton, #checkButton").prop("disabled", !this.currentWord);
     if (this.currentWord) {
       $("#spelling").text(`${this.currentWord.pinyin}`);
     } else {
@@ -248,25 +247,28 @@ class WordList {
     const words = this.words.filter((word) => word.character.length === this.currentWord.character.length);
     this.quizWords = [];
     this.quizWords.push(this.currentWord);
-    for (let i = 0; i < 3; i++) {
+    while (this.quizWords.length < 4 && words.length > 0) {
       let word = this.popRandomWord(words);
       this.quizWords.push(word);
     }
+
     this.quizWords.sort(() => Math.random() - 0.5);
-    const quizContent = this.quizWords.map((word, i) => {
+    const quizOptions = this.quizWords.map((word, i) => {
       return `<button class="btn btn-outline-primary btn-block quiz-option" data-index="${i}">${word.character}</button>`;
     }).join('');
-    $('#quizModalBody').html(quizContent);
+    $('#quizSpelling').text(this.currentWord.pinyin);
+    $('#quizOptions').html(quizOptions);
+    $('#quizFeedback').html('');
     $('#quizModal').modal('show');
   }
 
   checkAnswer(index) {
     const word = this.quizWords[index];
     if (word.character === this.currentWord.character) {
-      $('#quizModalBody').html(`<p class="text-success">Correct!</p>`);
+      $('#quizFeedback').html(`<p class="text-success">Correct!</p>`);
       this.setEasy();
     } else {
-      $('#quizModalBody').html(`<p class="text-danger">Wrong! The correct answer is ${this.currentWord.character}</p>`);
+      $('#quizFeedback').html(`<p class="text-danger">Wrong! The correct answer is ${this.currentWord.character}</p>`);
       this.setHard();
     }
   }
@@ -391,6 +393,11 @@ $(document).ready(function () {
   });
 
   $("#quizButton").click(function() {
+    wordList.quiz();
+  });
+
+  $("#quizNextButton").click(function() {
+    $("#nextButton").trigger("click");
     wordList.quiz();
   });
 

@@ -55,9 +55,9 @@
       <button id="clearButton" class="btn cross-button" style="position: absolute; top: 0; left: 335px;">&#10005;</button>
     </div>
     <div id="check-zone" class="mt-2">
-      <button id="quizButton" class="btn btn-warning" style="margin-right: 0.5rem;">Quiz</button>
-      <button id="checkButton" class="btn btn-success" style="margin-right: 0.5rem;" disabled>Answer</button>
-      <span id="character"></span>
+      <button id="quizButton" class="btn btn-warning" disabled>Quiz</button>
+      <button id="checkButton" class="btn btn-success ms-1" disabled>Answer</button>
+      <span id="character" class="ms-1"></span>
     </div>
     <div id="characterHandwriting">
       <span id="ch0"></span>
@@ -95,10 +95,13 @@
           <h5 class="modal-title" id="quizModalLabel">Quiz</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="quizModalBody">
-          <!-- Quiz content will be dynamically inserted here -->
+        <div class="modal-body">
+          <div id="quizSpelling"></div>
+          <div id="quizOptions" class="mt-1"></div>
+          <div id="quizFeedback" class="mt-1"></div>
         </div>
         <div class="modal-footer">
+          <button type="button" id="quizNextButton" class="btn btn-info">Next</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
       </div>
