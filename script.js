@@ -249,12 +249,14 @@ class WordList {
     this.quizWords.push(this.currentWord);
     while (this.quizWords.length < 4 && words.length > 0) {
       let word = this.popRandomWord(words);
-      this.quizWords.push(word);
+      if (word && !this.quizWords.some(qWord => qWord.character === word.character)) {
+        this.quizWords.push(word);
+      }
     }
 
     this.quizWords.sort(() => Math.random() - 0.5);
     const quizOptions = this.quizWords.map((word, i) => {
-      return `<button class="btn btn-outline-primary btn-block quiz-option" data-index="${i}">${word.character}</button>`;
+      return `<button class="btn btn-outline-primary btn-block quiz-option" data-index="${i}" style="font-size: 1.5rem;">${word.character}</button>`;
     }).join('');
     $('#quizSpelling').text(this.currentWord.pinyin);
     $('#quizOptions').html(quizOptions);
