@@ -398,6 +398,22 @@ $(document).ready(function () {
     wordList.quiz();
   });
 
+  $("#quizDetailsButton").click(function () {
+    // Hide the quiz modal
+    $("#quizModal").modal("hide");
+
+    // Show the details modal
+    $("#detailsButton").trigger("click");
+
+    // Dynamically bind the event to reopen the quiz modal
+    $("#detailsModal").on("hidden.bs.modal.reopenQuiz", function () {
+      $("#quizModal").modal("show");
+
+      // Unbind this specific event after it is triggered
+      $(this).off("hidden.bs.modal.reopenQuiz");
+    });
+  });
+
   $("#quizNextButton").click(function() {
     $("#nextButton").trigger("click");
     wordList.quiz();
