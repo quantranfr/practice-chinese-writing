@@ -256,7 +256,7 @@ class WordList {
 
     this.quizWords.sort(() => Math.random() - 0.5);
     const quizOptions = this.quizWords.map((word, i) => {
-      return `<button class="btn btn-outline-primary btn-block quiz-option" data-index="${i}" style="font-size: 1.5rem;">${word.character}</button>`;
+      return `<button class="btn btn-outline-primary btn-block mt-1 quiz-option" data-index="${i}" style="font-size: 1.5rem;">${word.character}</button>`;
     }).join('');
     $('#quizSpelling').text(this.currentWord.pinyin);
     $('#quizOptions').html(quizOptions);
@@ -406,11 +406,11 @@ $(document).ready(function () {
     $("#detailsButton").trigger("click");
 
     // Dynamically bind the event to reopen the quiz modal
-    $("#detailsModal").on("hidden.bs.modal.reopenQuiz", function () {
+    $("#detailsModal").on("hide.bs.modal.reopenQuiz", function () {
       $("#quizModal").modal("show");
 
       // Unbind this specific event after it is triggered
-      $(this).off("hidden.bs.modal.reopenQuiz");
+      $(this).off("hide.bs.modal.reopenQuiz");
     });
   });
 
